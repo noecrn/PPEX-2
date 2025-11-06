@@ -15,7 +15,8 @@ library:
 
 debug:
 
-check:
+check: library
+	./tests/test_suite.sh
 
 clean:
 	$(RM) libmalloc.so $(OBJS)
