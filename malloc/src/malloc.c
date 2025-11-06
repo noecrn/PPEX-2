@@ -22,7 +22,7 @@ struct block *cast_block(void *ptr, int offset, size_t flag)
     return (struct block *)((char *)ptr + offset);
 }
 
-// First fit algorithm (can be optimised in Best fit algorithm)
+// First fit algorithm
 static struct block *find_block(size_t size)
 {
     struct block *cur = g_list.head;
@@ -40,6 +40,32 @@ static struct block *find_block(size_t size)
     return NULL;
 }
 
+// Best fit algorithm
+static struct block *best_fit(size_t size)
+{
+    struct block *res = NULL;
+    struct block *cur = g_list.head;
+
+    while (cur)
+    {
+        // If free block found
+        if (cur->status == 0)
+        {
+            // If it's the first free block or
+            // If the block fit the size and is smaller than the previous found
+            if (!res || (cur->size >= size && cur->size < res->size))
+            {
+                res = cur;
+            }
+
+            cur = cur->next;
+        }
+    }
+
+    return res;
+}
+
+// Align size with multiple of sizeof(long double)
 size_t align(size_t size)
 {
     size_t align = sizeof(long double);
@@ -62,6 +88,7 @@ size_t align(size_t size)
     return size;
 }
 
+// Expand memory size to needed
 static size_t expand_memory(size_t needed)
 {
     // Compute the number of pages
@@ -106,6 +133,8 @@ static size_t expand_memory(size_t needed)
     return 0;
 }
 
+// Split free_block in two
+// One block of size needed and the other block of size left
 void split_block(struct block *free_block, size_t needed)
 {
     if (!free_block)
@@ -175,6 +204,7 @@ __attribute__((visibility("default"))) void *malloc(size_t size)
     return (void *)cast_block(free_block, sizeof(struct block), 1);
 }
 
+// Merge two blocks together
 void merge_block(struct block *a, struct block *b)
 {
     // If b is the last element

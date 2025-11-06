@@ -12,12 +12,13 @@ rm -f "$ref_out"
 
 set -- "true" \
        "ls" \
-       "factor 20 30 40 50 60 70 80 90" \
-       "cat ../Makefile" \
-       "ip a" \
-       "gimp" \
-       "chromium-browser" \
-       "vlc"
+       "ls -la" \
+       "tar -cf malloc.tar libmalloc.so" \
+       "find /" \
+       "tree /" \
+       "od libmalloc.so" \
+       "git status" \
+       "less Makefile" \
 
 for cmd in "$@"; do
 	# Execute command with our Malloc
