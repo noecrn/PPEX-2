@@ -17,7 +17,7 @@ __attribute__((visibility("default"))) void *realloc(void *ptr, size_t size)
     }
 
     // Get block address
-    struct block *block = cast_block(ptr, sizeof(struct block));
+    struct block *block = cast_block(ptr, sizeof(struct block), 0);
     size_t needed = align(size) + sizeof(struct block);
 
     // If no need to modifie the size

@@ -13,9 +13,13 @@
 // Global var for the list
 struct block_list g_list = { NULL, NULL };
 
-struct block *cast_block(void *ptr, size_t offset)
+struct block *cast_block(void *ptr, int offset, size_t flag)
 {
-    return (struct block *)((char *)ptr - offset);
+    if (flag == 0)
+    {
+        offset = -offset;
+    }
+    return (struct block *)((char *)ptr + offset);
 }
 
 // First fit algorithm (can be optimised in Best fit algorithm)
@@ -104,6 +108,11 @@ static size_t expand_memory(size_t needed)
 
 void split_block(struct block *free_block, size_t needed)
 {
+    if (!free_block)
+    {
+        return;
+    }
+
     // If unused space cannot contain a new block
     size_t unused_space = free_block->size - needed;
     size_t min_block_size = sizeof(struct block) + align(1);
@@ -113,7 +122,7 @@ void split_block(struct block *free_block, size_t needed)
     }
 
     // Init new block address
-    struct block *new_block = cast_block(free_block, needed);
+    struct block *new_block = cast_block(free_block, needed, 1);
     new_block->size = unused_space;
     new_block->status = 0;
 
@@ -149,19 +158,21 @@ __attribute__((visibility("default"))) void *malloc(size_t size)
     struct block *free_block = find_block(needed);
 
     // No free block big enough was found
-    if (!free_block && expand_memory(needed) == 1)
+    if (!free_block)
     {
-        return NULL;
+        if (expand_memory(needed) == 1)
+        {
+            return NULL;
+        }
+        free_block = g_list.tail;
     }
+
     // Free block was found
-    else
-    {
-        split_block(free_block, needed);
-    }
+    split_block(free_block, needed);
 
     // Update status & return pointer to the zone
     free_block->status = 1;
-    return cast_block(free_block, sizeof(struct block));
+    return (void *)cast_block(free_block, sizeof(struct block), 1);
 }
 
 void merge_block(struct block *a, struct block *b)
@@ -196,7 +207,7 @@ __attribute__((visibility("default"))) void free(void *ptr)
     }
 
     // Get the block address & mark it free
-    struct block *block = cast_block(ptr, sizeof(struct block));
+    struct block *block = cast_block(ptr, sizeof(struct block), 0);
     block->status = 0;
 
     // If the next exists and is free
@@ -208,8 +219,9 @@ __attribute__((visibility("default"))) void free(void *ptr)
     // If the previous exists and is free
     if (block->prev && block->prev->status == 0)
     {
-        merge_block(block->prev, block);
-        block = block->prev;
+        struct block *prev = block->prev;
+        merge_block(prev, block);
+        block = prev;
     }
 
     // The last block standing in the memory
@@ -217,7 +229,7 @@ __attribute__((visibility("default"))) void free(void *ptr)
     {
         g_list.head = NULL;
         g_list.tail = NULL;
-        munmap(block, block->size);
+        //munmap(block, block->size);
     }
     else
     {
