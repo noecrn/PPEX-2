@@ -22,24 +22,6 @@ struct block *cast_block(void *ptr, int offset, size_t flag)
     return (struct block *)((char *)ptr + offset);
 }
 
-// First fit algorithm
-static struct block *find_block(size_t size)
-{
-    struct block *cur = g_list.head;
-    while (cur)
-    {
-        // If the block fit the size
-        if (cur->size >= size && cur->status == 0)
-        {
-            return cur;
-        }
-        cur = cur->next;
-    }
-
-    // No block found
-    return NULL;
-}
-
 // Best fit algorithm
 static struct block *best_fit(size_t size)
 {
@@ -184,7 +166,7 @@ __attribute__((visibility("default"))) void *malloc(size_t size)
     size_t needed = align(size) + sizeof(struct block);
 
     // Find a free block that fit the size
-    struct block *free_block = find_block(needed);
+    struct block *free_block = best_fit(needed);
 
     // No free block big enough was found
     if (!free_block)
