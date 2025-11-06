@@ -1,0 +1,7 @@
+{
+	"files.associations": {
+		"stdint.h": "c",
+		"metadata.h": "c",
+		"malloc.h": "c"
+	}
+}
