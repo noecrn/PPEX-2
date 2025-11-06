@@ -14,7 +14,7 @@ NC='\033[0m'
 echo $YEL "Running test suite..." $NC
 
 func_dir () {
-	for dir in "tests/*"; do
+	for dir in tests/*; do
 		if [ -d "$dir" ]; then
             func_file $dir
 		fi
@@ -27,18 +27,10 @@ func_file () {
         echo $YEL "--- $1 ---" $NC
         total_tests=$((total_tests + 1))
 
-        # Compile Malloc
-        make library
-        if [ $? -ne 0 ]; then
-            echo $RED "Failed to build libmalloc.so" $NC
-            exit 1
-        fi
-
         # Execute the test
         ./$path
         if [ $? -eq 0 ]; then
             passed_tests=$((passed_tests + 1))
-            exit 1
         fi
     fi
 }

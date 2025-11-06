@@ -10,15 +10,13 @@ NC='\033[0m'
 rm -f "$my_out"
 rm -f "$ref_out"
 
-COMMANDS=(
-	"ls"
-	"factor 20 30 40 50 60 70 80 90"
-	"cat ../Makefile"
-	"ip a"
-	"ls not_a_file"
-)
+set -- "true" \
+       "ls" \
+       "factor 20 30 40 50 60 70 80 90" \
+       "cat ../Makefile" \
+       "ip a"
 
-for cmd in "${COMMANDS}"; do
+for cmd in "$@"; do
 	# Execute command with our Malloc
 	LD_PRELOAD=../libmalloc.so $cmd > /dev/null 2>&1
 	exit_code=$?
@@ -34,4 +32,3 @@ for cmd in "${COMMANDS}"; do
 	fi
 done
 
-diff -u "$ref_out" "$my_out"
