@@ -3,8 +3,9 @@
 
 #include "malloc.h"
 #include "metadata.h"
+#include <stdlib.h>
 
-__attribute__((visibility("default"))) void *calloc(size_t nmemb, size_t size)
+void *my_calloc(size_t nmemb, size_t size)
 {
     if (nmemb == 0 || size == 0)
     {
@@ -20,7 +21,7 @@ __attribute__((visibility("default"))) void *calloc(size_t nmemb, size_t size)
     }
 
     // Allocate memory
-    void *block = malloc(total_size);
+    void *block = my_malloc(total_size);
     if (!block)
     {
         return NULL;

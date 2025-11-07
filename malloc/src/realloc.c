@@ -1,18 +1,20 @@
 #include <string.h>
 
 #include "malloc.h"
+#include "free.h"
 #include "metadata.h"
+#include <stdlib.h>
 
-__attribute__((visibility("default"))) void *realloc(void *ptr, size_t size)
+void *my_realloc(void *ptr, size_t size)
 {
     if (!ptr)
     {
-        return malloc(size);
+        return my_malloc(size);
     }
 
     if (size == 0)
     {
-        free(ptr);
+        my_free(ptr);
         return NULL;
     }
 
@@ -47,13 +49,13 @@ __attribute__((visibility("default"))) void *realloc(void *ptr, size_t size)
     size_t new_size = (current_size < size) ? current_size : size;
 
     // If the size is bigger
-    void *new_ptr = malloc(size);
+    void *new_ptr = my_malloc(size);
     if (!new_ptr)
     {
         return NULL;
     }
     memcpy(new_ptr, ptr, new_size);
-    free(ptr);
+    my_free(ptr);
 
     return new_ptr;
 }

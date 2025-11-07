@@ -9,25 +9,34 @@
 !_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
 !_TAG_PROGRAM_URL	https://ctags.io/	/official site/
 !_TAG_PROGRAM_VERSION	5.9.0	//
+CALLOC_H	malloc/src/calloc.h	/^#define CALLOC_H$/;"	d
 CC	malloc/Makefile	/^CC=gcc$/;"	m
 CFLAGS	malloc/Makefile	/^CFLAGS=-std=c99 -pedantic -Werror -Wall -Wextra -Wvla -fvisibility=hidden -fPIC -g$/;"	m
+FREE_H	malloc/src/free.h	/^#define FREE_H$/;"	d
 MALLOC_H	malloc/src/malloc.h	/^#define MALLOC_H$/;"	d
 METADATA_H	malloc/src/metadata.h	/^#define METADATA_H$/;"	d
 OBJS	malloc/Makefile	/^OBJS=$(SRCS:.c=.o)$/;"	m
-SRCS	malloc/Makefile	/^SRCS=malloc.c calloc.c realloc.c$/;"	m
+REALLOC_H	malloc/src/realloc.h	/^#define REALLOC_H$/;"	d
+SRCS	malloc/Makefile	/^SRCS=malloc.c calloc.c realloc.c free.c$/;"	m
+Test	malloc/tests/test_basic.c	/^Test(calloc, simple_calloc)$/;"	f
+Test	malloc/tests/test_basic.c	/^Test(free, free_null)$/;"	f
+Test	malloc/tests/test_basic.c	/^Test(malloc, malloc_zero)$/;"	f
+Test	malloc/tests/test_basic.c	/^Test(malloc, simple_malloc)$/;"	f
+Test	malloc/tests/test_basic.c	/^Test(realloc, realloc_free)$/;"	f
+Test	malloc/tests/test_basic.c	/^Test(realloc, realloc_malloc)$/;"	f
+Test	malloc/tests/test_basic.c	/^Test(realloc, realloc_simple)$/;"	f
 align	malloc/src/malloc.c	/^size_t align(size_t size)$/;"	f	typeref:typename:size_t
 all	malloc/Makefile	/^all: library$/;"	t
 best_fit	malloc/src/malloc.c	/^static struct block *best_fit(size_t size)$/;"	f	typeref:struct:block *	file:
 block	malloc/src/metadata.h	/^struct block$/;"	s
 block_list	malloc/src/metadata.h	/^struct block_list$/;"	s
-calloc	malloc/src/calloc.c	/^__attribute__((visibility("default"))) void *calloc(size_t nmemb, size_t size)$/;"	f	typeref:typename:void *
+calloc	malloc/src/linker.c	/^__attribute__((visibility("default"))) void *calloc(size_t nmemb, size_t size)$/;"	f	typeref:typename:void *
 cast_block	malloc/src/malloc.c	/^struct block *cast_block(void *ptr, int offset, size_t flag)$/;"	f	typeref:struct:block *
 check	malloc/Makefile	/^check: library$/;"	t
 clean	malloc/Makefile	/^clean:$/;"	t
-debug	malloc/Makefile	/^debug:$/;"	t
 expand_memory	malloc/src/malloc.c	/^static size_t expand_memory(size_t needed)$/;"	f	typeref:typename:size_t	file:
 files.associations	.vscode/settings.json	/^	"files.associations": {$/;"	o
-free	malloc/src/malloc.c	/^__attribute__((visibility("default"))) void free(void *ptr)$/;"	f	typeref:typename:void
+free	malloc/src/linker.c	/^__attribute__((visibility("default"))) void free(void *ptr)$/;"	f	typeref:typename:void
 func_dir	malloc/tests/test_suite.sh	/^func_dir () {$/;"	f
 func_file	malloc/tests/test_suite.sh	/^func_file () {$/;"	f
 g_list	malloc/src/malloc.c	/^struct block_list g_list = { NULL, NULL };$/;"	v	typeref:struct:block_list
@@ -35,15 +44,20 @@ head	malloc/src/metadata.h	/^    struct block *head;$/;"	m	struct:block_list	typ
 library	malloc/Makefile	/^library: CPPFLAGS+=-D_DEFAULT_SOURCE$/;"	t
 library	malloc/Makefile	/^library: LDFLAGS+=-shared -Wl,--no-undefined$/;"	t
 library	malloc/Makefile	/^library:$/;"	t
-malloc	malloc/src/malloc.c	/^__attribute__((visibility("default"))) void *malloc(size_t size)$/;"	f	typeref:typename:void *
+malloc	malloc/src/linker.c	/^__attribute__((visibility("default"))) void *malloc(size_t size)$/;"	f	typeref:typename:void *
 malloc.h	.vscode/settings.json	/^		"malloc.h": "c"$/;"	s	object:files.associations
-merge_block	malloc/src/malloc.c	/^void merge_block(struct block *a, struct block *b)$/;"	f	typeref:typename:void
+merge_block	malloc/src/free.c	/^void merge_block(struct block *a, struct block *b)$/;"	f	typeref:typename:void
 metadata.h	.vscode/settings.json	/^		"metadata.h": "c",$/;"	s	object:files.associations
+my_calloc	malloc/src/calloc.c	/^void *my_calloc(size_t nmemb, size_t size)$/;"	f	typeref:typename:void *
+my_free	malloc/src/free.c	/^void my_free(void *ptr)$/;"	f	typeref:typename:void
+my_malloc	malloc/src/malloc.c	/^void *my_malloc(size_t size)$/;"	f	typeref:typename:void *
+my_realloc	malloc/src/realloc.c	/^void *my_realloc(void *ptr, size_t size)$/;"	f	typeref:typename:void *
 next	malloc/src/metadata.h	/^    struct block *next;$/;"	m	struct:block	typeref:struct:block *
 prev	malloc/src/metadata.h	/^    struct block *prev;$/;"	m	struct:block	typeref:struct:block *
-realloc	malloc/src/realloc.c	/^__attribute__((visibility("default"))) void *realloc(void *ptr, size_t size)$/;"	f	typeref:typename:void *
+realloc	malloc/src/linker.c	/^__attribute__((visibility("default"))) void *realloc(void *ptr, size_t size)$/;"	f	typeref:typename:void *
 size	malloc/src/metadata.h	/^    size_t size;$/;"	m	struct:block	typeref:typename:size_t
 split_block	malloc/src/malloc.c	/^void split_block(struct block *free_block, size_t needed)$/;"	f	typeref:typename:void
 status	malloc/src/metadata.h	/^    size_t status;$/;"	m	struct:block	typeref:typename:size_t
 stdint.h	.vscode/settings.json	/^		"stdint.h": "c",$/;"	s	object:files.associations
 tail	malloc/src/metadata.h	/^    struct block *tail;$/;"	m	struct:block_list	typeref:struct:block *
+test	malloc/Makefile	/^test: library$/;"	t
