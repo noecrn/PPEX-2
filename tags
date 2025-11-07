@@ -85,7 +85,7 @@ CFLAGS	malloc/Makefile	/^CFLAGS=-std=c99 -pedantic -Werror -Wall -Wextra -Wvla -
 MALLOC_H	malloc/src/malloc.h	/^#define MALLOC_H$/;"	d
 METADATA_H	malloc/src/metadata.h	/^#define METADATA_H$/;"	d
 OBJS	malloc/Makefile	/^OBJS=$(SRCS:.c=.o)$/;"	m
-SRCS	malloc/Makefile	/^SRCS=malloc.c calloc.c realloc.c$/;"	m
+SRCS	malloc/Makefile	/^SRCS=malloc.c calloc.c realloc.c free.c$/;"	m
 align	malloc/src/malloc.c	/^size_t align(size_t size)$/;"	f	typeref:typename:size_t
 best_fit	malloc/src/malloc.c	/^static struct block *best_fit(size_t size)$/;"	f	typeref:struct:block *	file:
 block	malloc/src/metadata.h	/^struct block$/;"	s
@@ -97,8 +97,7 @@ clean	malloc/Makefile	/^clean:$/;"	t
 debug	malloc/Makefile	/^debug:$/;"	t
 expand_memory	malloc/src/malloc.c	/^static size_t expand_memory(size_t needed)$/;"	f	typeref:typename:size_t	file:
 files.associations	.vscode/settings.json	/^	"files.associations": {$/;"	o
-find_block	malloc/src/malloc.c	/^static struct block *find_block(size_t size)$/;"	f	typeref:struct:block *	file:
-free	malloc/src/malloc.c	/^__attribute__((visibility("default"))) void free(void *ptr)$/;"	f	typeref:typename:void
+free	malloc/src/free.c	/^__attribute__((visibility("default"))) void free(void *ptr)$/;"	f	typeref:typename:void
 func_dir	malloc/tests/test_suite.sh	/^func_dir () {$/;"	f
 func_file	malloc/tests/test_suite.sh	/^func_file () {$/;"	f
 g_list	malloc/src/malloc.c	/^struct block_list g_list = { NULL, NULL };$/;"	v	typeref:struct:block_list
@@ -108,7 +107,7 @@ library	malloc/Makefile	/^library: LDFLAGS+=-shared -Wl,--no-undefined$/;"	t
 library	malloc/Makefile	/^library:$/;"	t
 malloc	malloc/src/malloc.c	/^__attribute__((visibility("default"))) void *malloc(size_t size)$/;"	f	typeref:typename:void *
 malloc.h	.vscode/settings.json	/^		"malloc.h": "c"$/;"	s	object:files.associations
-merge_block	malloc/src/malloc.c	/^void merge_block(struct block *a, struct block *b)$/;"	f	typeref:typename:void
+merge_block	malloc/src/free.c	/^void merge_block(struct block *a, struct block *b)$/;"	f	typeref:typename:void
 metadata.h	.vscode/settings.json	/^		"metadata.h": "c",$/;"	s	object:files.associations
 next	malloc/src/metadata.h	/^    struct block *next;$/;"	m	struct:block	typeref:struct:block *
 prev	malloc/src/metadata.h	/^    struct block *prev;$/;"	m	struct:block	typeref:struct:block *
