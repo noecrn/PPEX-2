@@ -46,7 +46,7 @@ void *my_realloc(void *ptr, size_t size)
 
     // Get the minimum of current size and new size
     size_t current_size = block->size - sizeof(struct block);
-    size_t new_size = (current_size < size) ? current_size : size;
+    size_t new_size = (current_size < block->size) ? current_size : size;
 
     // If the size is bigger
     void *new_ptr = my_malloc(size);
