@@ -1,8 +1,8 @@
-#include "metadata.h"
-#include "malloc.h"
-
-#include <string.h>
 #include <errno.h>
+#include <string.h>
+
+#include "malloc.h"
+#include "metadata.h"
 
 __attribute__((visibility("default"))) void *calloc(size_t nmemb, size_t size)
 {

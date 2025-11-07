@@ -3,8 +3,6 @@
 
 #include <stddef.h>
 
-extern struct block_list g_list;
-
 struct block *cast_block(void *ptr, int offset, size_t flag);
 size_t align(size_t size);
 void split_block(struct block *free_block, size_t needed);

@@ -1,7 +1,14 @@
-#include "metadata.h"
-
+#include <assert.h>
+#include <err.h>
+#include <errno.h>
+#include <pthread.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+#include "metadata.h"
 
 // Global var for the list
 struct block_list g_list = { NULL, NULL };
@@ -24,17 +31,16 @@ static struct block *best_fit(size_t size)
     while (cur)
     {
         // If free block found
-        if (cur->status == 0)
+        if (cur->status == 0 && cur->size >= size)
         {
             // If it's the first free block or
             // If the block fit the size and is smaller than the previous found
-            if (!res || (cur->size >= size && cur->size < res->size))
+            if (!res || cur->size < res->size)
             {
                 res = cur;
             }
-
-            cur = cur->next;
         }
+        cur = cur->next;
     }
 
     return res;
@@ -79,7 +85,7 @@ static size_t expand_memory(size_t needed)
     // Allocate the number of pages
     size_t length = nb_page * page_size;
     struct block *free_block = mmap(NULL, length, PROT_READ | PROT_WRITE,
-                                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+                                    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (free_block == MAP_FAILED)
     {
         return 1;
@@ -178,3 +184,86 @@ __attribute__((visibility("default"))) void *malloc(size_t size)
     free_block->status = 1;
     return (void *)cast_block(free_block, sizeof(struct block), 1);
 }
+
+// Merge two blocks together
+void merge_block(struct block *a, struct block *b)
+{
+    // If b is the last element
+    if (g_list.tail == b)
+    {
+        g_list.tail = a;
+    }
+
+    // Merge of two blocks
+    a->next = b->next;
+    if (b->next)
+    {
+        b->next->prev = a;
+    }
+    a->size += b->size;
+
+    // Delete the merged block
+    b->size = 0;
+    b->next = NULL;
+    b->prev = NULL;
+    b->status = 0;
+}
+
+__attribute__((visibility("default"))) void free(void *ptr)
+{
+    // Invalid pointer
+    if (!ptr)
+    {
+        return;
+    }
+
+    // Get the block address & mark it free
+    struct block *block = cast_block(ptr, sizeof(struct block), 0);
+    block->status = 0;
+
+    // If the next exists and is free
+    if (block->next && block->next->status == 0)
+    {
+        merge_block(block, block->next);
+    }
+
+    // If the previous exists and is free
+    if (block->prev && block->prev->status == 0)
+    {
+        struct block *prev = block->prev;
+        merge_block(prev, block);
+        block = prev;
+    }
+
+    // The last block standing in the memory
+    if (!block->next && !block->prev)
+    {
+        // If munmap succeed
+        if (munmap(block, block->size) == 0)
+        {
+            g_list.head = NULL;
+            g_list.tail = NULL;
+        }
+        // If munmap failed make shure block is in the list
+        else
+        {
+            g_list.head = block;
+            g_list.tail = block;
+        }
+    }
+    else
+    {
+        // The last block of the queue
+        if (!block->next)
+        {
+            g_list.tail = block;
+        }
+
+        // The first block of the queue
+        if (!block->prev)
+        {
+            g_list.head = block;
+        }
+    }
+}
+
