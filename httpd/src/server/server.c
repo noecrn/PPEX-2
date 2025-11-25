@@ -2,8 +2,10 @@
 
 #include <arpa/inet.h>
 #include <err.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +26,16 @@
 
 #define BUFFER_SIZE 1024
 #define LOGGER(...) fprintf(stderr, __VA_ARGS__)
+
+static volatile sig_atomic_t running = 1;
+
+static void handle_sigint(int sig)
+{
+    if (sig)
+    {
+    };
+    running = 0;
+}
 
 void get_date(char *buffer, size_t size)
 {
@@ -246,6 +258,19 @@ int start_server(struct config *config)
 
     LOGGER("Starting server on %s:%s\n", ip, port);
 
+    // Handle the signal SIGINT
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = handle_sigint;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    if (sigaction(SIGINT, &sa, NULL) == -1)
+    {
+        perror("Sigaction SIGINT failed");
+        return 1;
+    }
+
     // Create and bind the socket
     int sfd = create_and_bind(ip, port);
     if (sfd == -1)
@@ -263,7 +288,7 @@ int start_server(struct config *config)
     }
 
     // Main accept loop
-    while (1)
+    while (running)
     {
         struct sockaddr_in addr;
         socklen_t addr_len = sizeof(addr);
@@ -271,6 +296,21 @@ int start_server(struct config *config)
 
         // Accept a new connectoin
         int client_fd = accept(sfd, addr_ptr, &addr_len);
+
+        // Handle signal SIGINT
+        if (client_fd == -1)
+        {
+            if (errno == EINTR)
+            {
+                // Signal caught
+                running = 0;
+                continue;
+            }
+
+            perror("accept");
+            continue;
+        }
+
         if (client_fd != -1)
         {
             // Get client's IP
@@ -285,6 +325,8 @@ int start_server(struct config *config)
             LOGGER("Client disconnected\n");
         }
     }
+
+    LOGGER("Stopping the server...\n");
 
     close(sfd);
     return 0;
