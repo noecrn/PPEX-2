@@ -95,14 +95,14 @@ static void send_error(int fd, int status)
             status, reason, date, strlen(body), body);
 }
 
-static void respond(int client_fd, struct request *request,
-                    struct config *config)
+static int respond(int client_fd, struct request *request,
+                   struct config *config)
 {
     // Check the method
     if (request->method != METHOD_GET && request->method != METHOD_HEAD)
     {
         send_error(client_fd, STATUS_METHOD_NOT_ALLOWED);
-        return;
+        return STATUS_METHOD_NOT_ALLOWED;
     }
 
     // Build the full path
@@ -116,7 +116,7 @@ static void respond(int client_fd, struct request *request,
     if (stat(path, &st) == -1)
     {
         send_error(client_fd, STATUS_NOT_FOUND);
-        return;
+        return STATUS_NOT_FOUND;
     }
 
     // Manage files
@@ -135,7 +135,7 @@ static void respond(int client_fd, struct request *request,
         if (stat(path, &st) == -1)
         {
             send_error(client_fd, STATUS_NOT_FOUND);
-            return;
+            return STATUS_NOT_FOUND;
         }
     }
 
@@ -144,7 +144,7 @@ static void respond(int client_fd, struct request *request,
     if (fd == -1)
     {
         send_error(client_fd, STATUS_FORBIDDEN);
-        return;
+        return STATUS_FORBIDDEN;
     }
 
     // Send the headers
@@ -168,6 +168,8 @@ static void respond(int client_fd, struct request *request,
     }
 
     close(fd);
+
+    return STATUS_OK;
 }
 
 static int create_and_bind(const char *node, const char *service)
@@ -241,11 +243,13 @@ static void communicate(int client_fd, struct config *config,
     {
         log_request(config, NULL, error_code, client_ip);
         send_error(client_fd, error_code);
+        log_response(config, NULL, error_code, client_ip);
         return;
     }
 
     log_request(config, request, STATUS_OK, client_ip);
-    respond(client_fd, request, config);
+    int status = respond(client_fd, request, config);
+    log_response(config, request, status, client_ip);
 
     // Clear
     request_destroy(request);

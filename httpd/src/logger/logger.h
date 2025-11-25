@@ -6,5 +6,7 @@
 
 void log_request(struct config *config, struct request *req, int status,
                  const char *client_ip);
+void log_response(struct config *config, struct request *request, int status,
+                  const char *client_ip);
 
 #endif /* LOGGER_H */
