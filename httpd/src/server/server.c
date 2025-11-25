@@ -44,7 +44,7 @@ void get_date(char *buffer, size_t size)
     strftime(buffer, size, "Date: %a, %d %b %Y %H:%M:%S GMT\r\n", tm);
 }
 
-static void send_error(int fd, int status)
+static void send_error(int fd, int status, struct request *request)
 {
     const char *reason;
     const char *body;
@@ -90,9 +90,13 @@ static void send_error(int fd, int status)
             "%s"
             "Content-Length: %lu\r\n"
             "Connection: close\r\n"
-            "\r\n"
-            "%s",
-            status, reason, date, strlen(body), body);
+            "\r\n",
+            status, reason, date, strlen(body));
+
+    if (!request || request->method != METHOD_HEAD)
+    {
+        dprintf(fd, "%s", body);
+    }
 }
 
 static int respond(int client_fd, struct request *request,
@@ -101,7 +105,7 @@ static int respond(int client_fd, struct request *request,
     // Check the method
     if (request->method != METHOD_GET && request->method != METHOD_HEAD)
     {
-        send_error(client_fd, STATUS_METHOD_NOT_ALLOWED);
+        send_error(client_fd, STATUS_METHOD_NOT_ALLOWED, request);
         return STATUS_METHOD_NOT_ALLOWED;
     }
 
@@ -115,7 +119,7 @@ static int respond(int client_fd, struct request *request,
     struct stat st;
     if (stat(path, &st) == -1)
     {
-        send_error(client_fd, STATUS_NOT_FOUND);
+        send_error(client_fd, STATUS_NOT_FOUND, request);
         return STATUS_NOT_FOUND;
     }
 
@@ -134,7 +138,7 @@ static int respond(int client_fd, struct request *request,
         // Check if the default file exist
         if (stat(path, &st) == -1)
         {
-            send_error(client_fd, STATUS_NOT_FOUND);
+            send_error(client_fd, STATUS_NOT_FOUND, request);
             return STATUS_NOT_FOUND;
         }
     }
@@ -143,7 +147,7 @@ static int respond(int client_fd, struct request *request,
     int fd = open(path, O_RDONLY);
     if (fd == -1)
     {
-        send_error(client_fd, STATUS_FORBIDDEN);
+        send_error(client_fd, STATUS_FORBIDDEN, request);
         return STATUS_FORBIDDEN;
     }
 
@@ -242,7 +246,7 @@ static void communicate(int client_fd, struct config *config,
     if (!request)
     {
         log_request(config, NULL, error_code, client_ip);
-        send_error(client_fd, error_code);
+        send_error(client_fd, error_code, request);
         log_response(config, NULL, error_code, client_ip);
         return;
     }
