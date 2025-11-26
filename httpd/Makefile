@@ -14,6 +14,7 @@ check: $(TARGET)
 	@test -d env || python3 -m venv env
 	@./env/bin/pip install -q -r tests/requirements.txt
 	@cd tests && ../env/bin/pytest -v
+	@deactivate
 
 clean:
 	$(MAKE) -C src clean

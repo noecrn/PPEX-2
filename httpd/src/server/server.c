@@ -25,7 +25,6 @@
 #include "../utils/string/string.h"
 
 #define BUFFER_SIZE 1024
-#define LOGGER(...) fprintf(stderr, __VA_ARGS__)
 
 static volatile sig_atomic_t running = 1;
 
@@ -44,43 +43,48 @@ void get_date(char *buffer, size_t size)
     strftime(buffer, size, "Date: %a, %d %b %Y %H:%M:%S GMT\r\n", tm);
 }
 
-static void send_error(int fd, int status, struct request *request)
+void get_error_code(char **reason, char **body, int status)
 {
-    const char *reason;
-    const char *body;
-
-    // Error code
     switch (status)
     {
     case STATUS_BAD_REQUEST:
-        reason = "Bad Request";
-        body = "<html><body><h1>400 Bad Request</h1></body></html>";
+        *reason = "Bad Request";
+        *body = "<html><body><h1>400 Bad Request</h1></body></html>";
         break;
     case STATUS_FORBIDDEN:
-        reason = "Forbidden";
-        body = "<html><body><h1>403 Forbidden</h1></body></html>";
+        *reason = "Forbidden";
+        *body = "<html><body><h1>403 Forbidden</h1></body></html>";
         break;
     case STATUS_NOT_FOUND:
-        reason = "Not Found";
-        body = "<html><body><h1>404 Not Found</h1></body></html>";
+        *reason = "Not Found";
+        *body = "<html><body><h1>404 Not Found</h1></body></html>";
         break;
     case STATUS_METHOD_NOT_ALLOWED:
-        reason = "Method Not Allowed";
-        body = "<html><body><h1>405 Method Not Allowed</h1></body></html>";
+        *reason = "Method Not Allowed";
+        *body = "<html><body><h1>405 Method Not Allowed</h1></body></html>";
         break;
     case STATUS_INTERNAL_ERROR:
-        reason = "Internal Error";
-        body = "<html><body><h1>500 Internal Error</h1></body></html>";
+        *reason = "Internal Error";
+        *body = "<html><body><h1>500 Internal Error</h1></body></html>";
         break;
     case STATUS_HTTP_VERSION_NOT_SUPPORTED:
-        reason = "Http Version Not Supported";
-        body =
+        *reason = "Http Version Not Supported";
+        *body =
             "<html><body><h1>505 Http Version Not Supported</h1></body></html>";
         break;
     default:
-        reason = "Error";
-        body = "<html><body><h1>Error</h1></body></html>";
+        *reason = "Error";
+        *body = "<html><body><h1>Error</h1></body></html>";
     }
+}
+
+static void send_error(int fd, int status, struct request *request)
+{
+    char *reason = NULL;
+    char *body = NULL;
+
+    // Error code
+    get_error_code(&reason, &body, status);
 
     char date[BUFFER_SIZE];
     get_date(date, sizeof(date));
@@ -264,7 +268,7 @@ int start_server(struct config *config)
     char *ip = config->servers->ip;
     char *port = config->servers->port;
 
-    LOGGER("Starting server on %s:%s\n", ip, port);
+    fprintf(stderr, "Starting server on %s:%s\n", ip, port);
 
     // Handle the signal SIGINT
     struct sigaction sa;
@@ -283,14 +287,14 @@ int start_server(struct config *config)
     int sfd = create_and_bind(ip, port);
     if (sfd == -1)
     {
-        LOGGER("Error: Could not bind to %s:%s\n", ip, port);
+        fprintf(stderr, "Error: Could not bind to %s:%s\n", ip, port);
         return 1;
     }
 
     // Start listening for incoming connections
     if (listen(sfd, SOMAXCONN) == -1)
     {
-        LOGGER("Error: Listen failed\n");
+        fprintf(stderr, "Error: Listen failed\n");
         close(sfd);
         return 1;
     }
@@ -319,22 +323,19 @@ int start_server(struct config *config)
             continue;
         }
 
-        if (client_fd != -1)
-        {
-            // Get client's IP
-            char client_ip[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, &addr.sin_addr, client_ip, INET_ADDRSTRLEN);
+        // Get client's IP
+        char client_ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &addr.sin_addr, client_ip, INET_ADDRSTRLEN);
 
-            // Handle the client
-            communicate(client_fd, config, client_ip);
+        // Handle the client
+        communicate(client_fd, config, client_ip);
 
-            // Close connection after handling
-            close(client_fd);
-            LOGGER("Client disconnected\n");
-        }
+        // Close connection after handling
+        close(client_fd);
+        fprintf(stderr, "Client disconnected\n");
     }
 
-    LOGGER("Stopping the server...\n");
+    fprintf(stderr, "Stopping the server...\n");
 
     close(sfd);
     return 0;

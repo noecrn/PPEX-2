@@ -6,6 +6,7 @@
 #include "../config/config.h"
 #include "../http/http.h"
 #include "../http/request.h"
+#include "../server/server.h"
 
 #define BUFFER_SIZE 128
 
@@ -43,9 +44,7 @@ void log_request(struct config *config, struct request *request, int status,
 
     // Get the date GMT format
     char date_buffer[BUFFER_SIZE];
-    time_t now = time(NULL);
-    struct tm *tm = gmtime(&now);
-    strftime(date_buffer, BUFFER_SIZE, "%a, %d %b %Y %H:%M:%S GMT", tm);
+    get_date(date_buffer, sizeof(date_buffer));
 
     // Get the server name
     struct string *server_name = config->servers->server_name;
@@ -98,24 +97,29 @@ void log_response(struct config *config, struct request *request, int status,
 
     // Get the date GMT format
     char date_buffer[BUFFER_SIZE];
-    time_t now = time(NULL);
-    struct tm *tm = gmtime(&now);
-    strftime(date_buffer, BUFFER_SIZE, "%a, %d %b %Y %H:%M:%S GMT", tm);
+    get_date(date_buffer, sizeof(date_buffer));
 
     // Get the server name
     struct string *server_name = config->servers->server_name;
     int server_size = server_name->size;
+    int target_size = request->target->size;
 
     // Write log depending on the status
-    if (!request)
+    if (!request || status == STATUS_BAD_REQUEST)
+    {
+        fprintf(stream, "%s [%.*s] responding with %d to %s\n", date_buffer,
+                server_size, server_name->data, status, client_ip);
+    }
+    else if (status == STATUS_METHOD_NOT_ALLOWED)
     {
         fprintf(stream,
-                "%s [%.*s] responding with %d to %s for UNKNOWN on ''\n",
-                date_buffer, server_size, server_name->data, status, client_ip);
+                "%s [%.*s] responding with %d to %s for UNKNOWN on '%.*s'\n",
+                date_buffer, server_size, server_name->data, status, client_ip,
+                target_size, request->target->data);
     }
     else
     {
-        int target_size = request->target->size;
+        // Standard response
         fprintf(stream, "%s [%.*s] responding with %d to %s for %s on '%.*s'\n",
                 date_buffer, server_size, server_name->data, status, client_ip,
                 get_method(request->method), target_size,
